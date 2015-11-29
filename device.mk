@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-$(shell python $(LOCAL_PATH)/auto_generator.py $(TARGET_BOARD_PLATFORM) preinstall)
-$(shell python $(LOCAL_PATH)/auto_generator.py $(TARGET_BOARD_PLATFORM) preinstall_del)
--include device/rockchip/$(TARGET_BOARD_PLATFORM)/preinstall/preinstall.mk
--include device/rockchip/$(TARGET_BOARD_PLATFORM)/preinstall_del/preinstall.mk
+$(shell python $(LOCAL_PATH)/auto_generator.py geekbox preinstall)
+$(shell python $(LOCAL_PATH)/auto_generator.py geekbox preinstall_del)
+-include device/rockchip/geekbox/preinstall/preinstall.mk
+-include device/rockchip/geekbox/preinstall_del/preinstall.mk
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
