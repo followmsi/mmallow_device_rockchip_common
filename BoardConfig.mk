@@ -25,14 +25,20 @@ TARGET_BOARD_PLATFORM ?= rk3288
 TARGET_BOARD_HARDWARE ?= rk30board
 # value: tablet,box,phone
 # It indicates whether to be tablet platform or not
+
 ifneq ($(filter %box, $(TARGET_PRODUCT)), )
 TARGET_BOARD_PLATFORM_PRODUCT ?= box
 else
+ifneq ($(filter %vr, $(TARGET_PRODUCT)), )
+TARGET_BOARD_PLATFORM_PRODUCT ?= vr
+else
 TARGET_BOARD_PLATFORM_PRODUCT ?= tablet
+endif
 endif
 
 # CPU feature configration
 ifeq ($(strip $(TARGET_BOARD_HARDWARE)), rk30board)
+
 TARGET_ARCH ?= arm
 TARGET_ARCH_VARIANT ?= armv7-a-neon
 ARCH_ARM_HAVE_TLS_REGISTER ?= true
@@ -58,6 +64,19 @@ TARGET_DISABLE_TRIPLE_BUFFERING ?= false
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK ?= false
 
 DEVICE_HAVE_LIBRKVPU ?= true
+
+#rotate screen to 0, 90, 180, 270
+#0:   rotate_0
+#90:  rotate_90
+#180: rotate_180
+#270: rotate_270
+ROTATE_SCREEN := rotate_0
+
+#Screen to Double, Single
+#YES: Screen to Double
+#NO: Screen to single
+DOUBLE_SCREEN := NO
+
 
 ifeq ($(strip $(TARGET_BOARD_PLATFORM_GPU)), mali400)
 BOARD_EGL_CFG := vendor/rockchip/common/gpu/Mali400/lib/arm/egl.cfg
@@ -89,16 +108,20 @@ BOARD_USE_LOW_MEM ?= false
 DEVICE_PACKAGE_OVERLAYS += device/rockchip/common/overlay
 
 #######for target product ########
-ifeq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)), box)
+ifeq ($(TARGET_BOARD_PLATFORM_PRODUCT),box)
 DEVICE_PACKAGE_OVERLAYS += device/rockchip/common/overlay_screenoff
 
-PRODUCT_PROPERTY_OVERRIDES += \
-        ro.target.product=box
+ADDITIONAL_DEFAULT_PROPERTIES += \
+	ro.target.product=box
 else
-  PRODUCT_PROPERTY_OVERRIDES += \
+ifeq ($(TARGET_BOARD_PLATFORM_PRODUCT),vr)
+  ADDITIONAL_DEFAULT_PROPERTIES += \
+        ro.target.product=vr
+else
+  ADDITIONAL_DEFAULT_PROPERTIES += \
         ro.target.product=tablet
 endif
-
+endif
 TARGET_RELEASETOOLS_EXTENSIONS := device/rockchip/common
 TARGET_PROVIDES_INIT_RC ?= false
 BOARD_HAL_STATIC_LIBRARIES ?= libdumpstate.$(TARGET_PRODUCT) libhealthd.$(TARGET_PRODUCT)
@@ -168,6 +191,7 @@ include device/rockchip/common/wifi_bt_common.mk
 # google apps
 BUILD_WITH_GOOGLE_MARKET ?= false
 BUILD_WITH_GOOGLE_MARKET_ALL ?= false
+BUILD_WITH_GOOGLE_FRP ?= false
 
 # face lock
 BUILD_WITH_FACELOCK ?= false
@@ -212,9 +236,6 @@ BUILD_WITH_MULTI_USB_PARTITIONS ?= false
 # define tablet support NTFS
 BOARD_IS_SUPPORT_NTFS ?= true
 
-# product has GPS or not
-BOARD_HAS_GPS ?= false
-
 # pppoe for cts, you should set this true during pass CTS and which will disable  pppoe function.
 BOARD_PPPOE_PASS_CTS ?= false
 
@@ -242,10 +263,30 @@ BOARD_WITH_BOOT_BOOST ?= false
 BOARD_WITH_MEM_OPTIMISE ?= false
 
 #force app can see udisk
-BOARD_FORCE_UDISK_VISIBLE ?= false
+BOARD_FORCE_UDISK_VISIBLE ?= true
 
 # set security patch date,this date should be update if security patch apply
 PLATFORM_SECURITY_PATCH := 2016-03-01
 
 # disable safe mode to speed up boot time
 BOARD_DISABLE_SAFE_MODE ?= true
+
+#enable 3g dongle
+BOARD_ENABLE_3G_DONGLE := true
+
+#for boot and shutdown animation ringing
+BOOT_SHUTDOWN_ANIMATION_RINGING ?= false
+
+#for pms multi thead scan
+BOARD_ENABLE_PMS_MULTI_THREAD_SCAN ?= false
+
+# product has follow sensors or not,if had override it in product's BoardConfig
+BOARD_HAS_GPS ?= false   
+BOARD_NFC_SUPPORT ?= false
+BOARD_GRAVITY_SENSOR_SUPPORT ?= false
+BOARD_COMPASS_SENSOR_SUPPORT ?= false
+BOARD_GYROSCOPE_SENSOR_SUPPORT ?= false
+BOARD_PROXIMITY_SENSOR_SUPPORT ?= false
+BOARD_LIGHT_SENSOR_SUPPORT ?= false
+BOARD_PRESSURE_SENSOR_SUPPORT ?= false
+BOARD_TEMPERATURE_SENSOR_SUPPORT ?= false

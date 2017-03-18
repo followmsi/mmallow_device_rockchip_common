@@ -37,6 +37,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PACKAGES += \
     fsck.f2fs mkfs.f2fs
 
+# PCBA tools
+PRODUCT_PACKAGES += \
+    pcba_core
+
 ifeq ($(strip $(BOARD_USE_LCDC_COMPOSER)), true)
 # setup dalvik vm configs.
 $(call inherit-product, frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
@@ -78,6 +82,7 @@ PRODUCT_COPY_FILES += \
     device/rockchip/common/rk29-keypad.kl:system/usr/keylayout/rk29-keypad.kl \
     device/rockchip/common/20050030_pwm.kl:system/usr/keylayout/20050030_pwm.kl \
     device/rockchip/common/ff680030_pwm.kl:system/usr/keylayout/ff680030_pwm.kl \
+	device/rockchip/common/ff420030_pwm.kl:system/usr/keylayout/ff420030_pwm.kl
 
 PRODUCT_COPY_FILES += \
     hardware/broadcom/wlan/bcmdhd/config/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
@@ -153,32 +158,45 @@ $(call inherit-product-if-exists, hardware/rockchip/camera/Config/user.mk)
 #audio
 $(call inherit-product-if-exists, hardware/rockchip/audio/tinyalsa_hal/codec_config/rk_audio.mk)
 
+ifeq ($(BOARD_NFC_SUPPORT),true)
 PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
-    frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
-    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
-    frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
-    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
-    frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
-    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
-    frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
-    frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
-    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
-    frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
-    frameworks/native/data/etc/android.hardware.sensor.barometer.xml:system/etc/permissions/android.hardware.sensor.barometer.xml \
-    frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
-    frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:system/etc/permissions/android.hardware.sensor.gyroscope.xml \
-    frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
-    frameworks/native/data/etc/android.hardware.sensor.stepcounter.xml:system/etc/permissions/android.hardware.sensor.stepcounter.xml \
-    frameworks/native/data/etc/android.hardware.sensor.stepdetector.xml:system/etc/permissions/android.hardware.sensor.stepdetector.xml \
-    frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml \
     frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
-    frameworks/native/data/etc/android.hardware.nfc.hce.xml:system/etc/permissions/android.hardware.nfc.hce.xml \
-    frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
-    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
-    frameworks/native/data/etc/android.hardware.ethernet.xml:system/etc/permissions/android.hardware.ethernet.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hce.xml:system/etc/permissions/android.hardware.nfc.hce.xml
+endif
 
-    # frameworks/native/data/etc/android.hardware.opengles.aep.xml:system/etc/permissions/android.hardware.opengles.aep.xml \
+ifeq ($(BOARD_HAS_GPS),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml
+endif
+
+ifeq ($(BOARD_COMPASS_SENSOR_SUPPORT),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml
+endif
+
+ifeq ($(BOARD_GYROSCOPE_SENSOR_SUPPORT),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:system/etc/permissions/android.hardware.sensor.gyroscope.xml
+endif
+
+ifeq ($(BOARD_PROXIMITY_SENSOR_SUPPORT),true)
+PRODUCT_COPY_FILES += \
+	frameworks/native/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml
+endif
+
+ifeq ($(BOARD_LIGHT_SENSOR_SUPPORT),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml
+endif
+
+
+ifeq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)), box)
+	PRODUCT_COPY_FILES += \
+		frameworks/native/data/etc/box_core_hardware.xml:system/etc/permissions/box_core_hardware.xml 
+else
+	PRODUCT_COPY_FILES += \
+		frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml 
+endif
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
@@ -189,8 +207,11 @@ PRODUCT_PACKAGES += \
     libjni_pinyinime
 
 # HAL
+ifneq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)), vr)
 PRODUCT_PACKAGES += \
-    power.$(TARGET_BOARD_PLATFORM) \
+    power.$(TARGET_BOARD_PLATFORM) 
+endif
+PRODUCT_PACKAGES += \
     sensors.$(TARGET_BOARD_HARDWARE) \
     gralloc.$(TARGET_BOARD_HARDWARE) \
     hwcomposer.$(TARGET_BOARD_HARDWARE) \
@@ -245,7 +266,10 @@ PRODUCT_PACKAGES += \
     libasound \
     alsa.default \
     acoustics.default \
-    libtinyalsa
+    libtinyalsa \
+    tinymix \
+    tinyplay \
+    tinypcminfo
 
 PRODUCT_PACKAGES += \
 	alsa.audio.primary.$(TARGET_BOARD_HARDWARE)\
@@ -466,7 +490,16 @@ $(call inherit-product-if-exists, vendor/google/products/gms.mk)
 else
 $(call inherit-product-if-exists, vendor/google/products/gms_mini.mk)
 endif
+ifeq ($(strip $(BUILD_WITH_GOOGLE_FRP)), true)
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.frp.pst=/dev/block/platform/fe330000.sdhci/by-name/frp
 endif
+endif
+
+#ro.product.first_api_level indicates the first api level, device has been commercially launced on.
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.product.first_api_level=23
+
 $(call inherit-product-if-exists, vendor/rockchip/common/device-vendor.mk)
 
 ########################################################
@@ -517,6 +550,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.mem_optimise.enable=true
 endif
 
+ifeq ($(strip $(TARGET_BOARD_PLATFORM_PRODUCT)), vr)
+PRODUCT_COPY_FILES += \
+       device/rockchip/common/lowmem_package_filter.xml:system/etc/lowmem_package_filter.xml 
+endif
+
 #if force app can see udisk
 ifeq ($(strip $(BOARD_FORCE_UDISK_VISIBLE)),true)
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -533,4 +571,24 @@ endif
 ifeq ($(strip $(BOARD_DISABLE_SAFE_MODE)),true)
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.safemode.disabled=true
+endif
+
+ifeq ($(strip $(BOARD_ENABLE_3G_DONGLE)),true)
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.enable.3g.dongle=true \
+    rild.libpath=/system/lib64/libril-rk29-dataonly.so
+endif
+
+#boot and shutdown animation, ringing
+ifeq ($(strip $(BOOT_SHUTDOWN_ANIMATION_RINGING)),true)
+PRODUCT_COPY_FILES += \
+       $(LOCAL_PATH)/startup.wav:system/media/audio/startup.wav \
+       $(LOCAL_PATH)/shutdown.wav:system/media/audio/shutdown.wav \
+       $(LOCAL_PATH)/bootanimation.zip:system/media/bootanimation.zip \
+       $(LOCAL_PATH)/shutdownanimation.zip:system/media/shutdownanmation.zip
+endif
+
+ifeq ($(strip $(BOARD_ENABLE_PMS_MULTI_THREAD_SCAN)), true)
+PRODUCT_PROPERTY_OVERRIDES += \
+	ro.pms.multithreadscan=true		
 endif

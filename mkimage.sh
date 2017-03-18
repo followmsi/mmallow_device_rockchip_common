@@ -6,6 +6,8 @@ set -e
 export PATH=$ANDROID_BUILD_PATHS:$PATH
 TARGET_PRODUCT=`get_build_var TARGET_PRODUCT`
 TARGET_HARDWARE=`get_build_var TARGET_BOARD_HARDWARE`
+TARGET_BOARD_PLATFORM=`get_build_var TARGET_BOARD_PLATFORM`
+echo TARGET_BOARD_PLATFORM=$TARGET_BOARD_PLATFORM
 echo TARGET_PRODUCT=$TARGET_PRODUCT
 echo TARGET_HARDWARE=$TARGET_HARDWARE
 TARGET="withoutkernel"
@@ -14,7 +16,8 @@ if [ "$1"x != ""x  ]; then
 fi
 
 IMAGE_PATH=rockdev/Image-$TARGET_PRODUCT
-
+UBOOT_PATH=u-boot
+KERNEL_PATH=kernel
 rm -rf $IMAGE_PATH
 mkdir -p $IMAGE_PATH
 
@@ -22,6 +25,11 @@ FSTYPE=ext4
 echo system filesysystem is $FSTYPE
 
 BOARD_CONFIG=device/rockchip/common/device.mk
+if [[ $TARGET_BOARD_PLATFORM = "rk3399" ]]; then
+PARAMETER=device/rockchip/$TARGET_BOARD_PLATFORM/$TARGET_PRODUCT/parameter.txt
+else
+PARAMETER=device/rockchip/$TARGET_BOARD_PLATFORM/parameter.txt
+fi
 
 KERNEL_SRC_PATH=`grep TARGET_PREBUILT_KERNEL ${BOARD_CONFIG} |grep "^\s*TARGET_PREBUILT_KERNEL *:= *[\w]*\s" |awk  '{print $3}'`
 
@@ -120,5 +128,57 @@ then
 	fi
 	echo "done."
 fi
+if [ -f $UBOOT_PATH/uboot.img ]
+then
+	echo -n "create uboot.img..."
+	cp -a $UBOOT_PATH/uboot.img $IMAGE_PATH/uboot.img
+	echo "done."
+else
+	echo "$UBOOT_PATH/uboot.img not fount! Please make it from $UBOOT_PATH first!"
+fi
 
+if [ -f $UBOOT_PATH/trust.img ]
+then
+        echo -n "create trust.img..."
+        cp -a $UBOOT_PATH/trust.img $IMAGE_PATH/trust.img
+        echo "done."
+else    
+        echo "$UBOOT_PATH/trust.img not fount! Please make it from $UBOOT_PATH first!"
+fi
+
+if [ -f $UBOOT_PATH/*MiniLoaderAll_*.bin ]
+then
+        echo -n "create loader..."
+        cp -a $UBOOT_PATH/*MiniLoaderAll_*.bin $IMAGE_PATH/MiniLoaderAll.bin
+        echo "done."
+else    
+        echo "$UBOOT_PATH/*MiniLoaderAll_*.bin not fount! Please make it from $UBOOT_PATH first!"
+fi
+
+if [ -f $KERNEL_PATH/resource.img ]
+then
+        echo -n "create resource.img..."
+        cp -a $KERNEL_PATH/resource.img $IMAGE_PATH/resource.img
+        echo "done."
+else
+        echo "$KERNEL_PATH/resource.img not fount!"
+fi
+
+if [ -f $KERNEL_PATH/kernel.img ]
+then
+        echo -n "create kernel.img..."
+        cp -a $KERNEL_PATH/kernel.img $IMAGE_PATH/kernel.img
+        echo "done."
+else
+        echo "$KERNEL_PATH/kernel.img not fount!"
+fi
+
+if [ -f $PARAMETER ]
+then
+        echo -n "create parameter..."
+        cp -a $PARAMETER $IMAGE_PATH/
+        echo "done."
+else
+        echo "$PARAMETER not fount!"
+fi
 chmod a+r -R $IMAGE_PATH/

@@ -12,14 +12,18 @@
 /dev/hevc_service    u:object_r:video_device:s0
 /dev/video_state     u:object_r:video_device:s0
 /dev/iep             u:object_r:video_device:s0
+/dev/camsys_marvin[0-9]*   u:object_r:camera_device:s0
 /dev/camsys_marvin   u:object_r:camera_device:s0
 /dev/block/zram0     u:object_r:zram_device:s0
 /dev/sw_sync         u:object_r:gpu_device:s0
 
+#akmd
+/dev/akm8963_dev     u:object_r:akmd_device:s0
 /system/bin/akmd     u:object_r:akmd_exec:s0
+/data/misc/akmd(/.*)?     u:object_r:akmd_file:s0
 
 /metadata(/.*)?      u:object_r:metadata_file:s0
-/dev/mma8452_daemon  u:object_r:sensors_device:s0
+/dev/mma8452_daemon  u:object_r:sensor_device:s0
 /data/camera(/.*)?   u:object_r:camdata_file:s0
 
 /radical_update(/.*)? u:object_r:ru_file:s0
@@ -27,8 +31,8 @@
 /dev/rknand_sys_storage                u:object_r:rknand_device:s0
 /system/vendor/bin/pvrsrvctl           u:object_r:pvrsrvctl_exec:s0
 /system/bin/drmservice                 u:object_r:drmservice_exec:s0
-/sbin/e2fsck                           u:object_r:ext4_exec:s0
-/sbin/resize2fs                        u:object_r:ext4_exec:s0
+#/system/bin/e2fsck                     u:object_r:ext4_exec:s0
+#/sbin/resize2fs                        u:object_r:resize2fs_exec:s0
 
 
 /sys/devices/virtual/android_usb/android0/(/.*)? -- u:object_r:sysfs_usb:s0
@@ -47,4 +51,23 @@
 
 #for displayd
 /system/bin/displayd                 u:object_r:displayd_exec:s0
-/dev/block/mmcblk0p13                u:object_r:baseparameter_block_device:s0
+
+#for glgps
+/data/system/gps(/.*)?     u:object_r:gps_data_file:s0
+
+#for frp funtions
+#/dev/block/mmcblk0p13                u:object_r:frp_block_device:s0
+/dev/block/platform/fe330000.sdhci/by-name/frp  u:object_r:frp_block_device:s0
+/dev/block/platform/fe330000.sdhci/by-name/system u:object_r:resize_block_device:s0
+/dev/block/platform/fe330000.sdhci/by-name/cache u:object_r:e2fsck_cache_block_device:s0
+/dev/block/platform/fe330000.sdhci/by-name/metadata u:object_r:e2fsck_metadata_block_device:s0
+/dev/block/mmcblk0p13 u:object_r:e2fsck_frp_block_device:s0
+
+# sensor
+/dev/lightsensor                u:object_r:sensor_device:s0
+/dev/psensor                    u:object_r:sensor_device:s0
+/dev/compass                    u:object_r:sensor_device:s0
+/dev/gyrosensor                 u:object_r:sensor_device:s0
+/dev/pressure                   u:object_r:sensor_device:s0
+
+/dev/block/platform/fe330000.sdhci/by-name/userdata u:object_r:userdata_block_device:s0

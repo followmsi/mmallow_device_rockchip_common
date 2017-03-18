@@ -3,6 +3,8 @@ import init.${ro.hardware}.environment.rc
 import init.rockchip.rc
 import init.connectivity.rc
 import init.box.samba.rc
+import init.${ro.target.product}.rc
+import init.car.rc
 
 on post-fs
     insmod /system/lib/modules/ump.ko
@@ -31,6 +33,9 @@ on post-fs-data
     copy /etc/ppp/pppoe.conf /data/misc/ppp/pppoe.conf
     ##$_rbox_$_modify_$_end
 
+on init
+    # set temperature control policy as normal mode
+    write /sys/module/rockchip_pm/parameters/policy 1
 
 on boot
 
@@ -65,6 +70,7 @@ on boot
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
     chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
     chown system system  /sys/devices/ffa30000.gpu/dvfs
+    chmod 0777 /sys/devices/platform/ff9a0000.gpu/devfreq/ff9a0000.gpu/governor
 
     chown system system /sys/devices/system/cpu/cpu1/online
     chmod 0660 /sys/devices/system/cpu/cpu1/online
@@ -126,6 +132,12 @@ on boot
      
     chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
     chmod 0664 /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed
+  
+    chown system system /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor
+    chmod 0664 /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor
+     
+    chown system system /sys/devices/system/cpu/cpu4/cpufreq/scaling_setspeed
+    chmod 0664 /sys/devices/system/cpu/cpu4/cpufreq/scaling_setspeed
    
     #add for usb otg by lly
     chown system system /sys/bus/platform/drivers/usb20_otg/force_usb_mode
@@ -139,11 +151,26 @@ on boot
     chmod 0664 /sys/devices/virtual/display/HDMI/mode
     chmod 0664 /sys/devices/virtual/display/HDMI/scale
   
+    #add for cts
+    chmod 0660 /sys/bus/platform/drivers/usb20_otg/dwc_otg_conn_en
+    chmod 0660 /sys/bus/platform/drivers/usb20_otg/force_usb_mode
+    chmod 0660 /sys/bus/platform/drivers/usb20_otg/vbus_status
+    chmod 0660 /sys/devices/platform/fb/graphics/fb5/enable
+    chmod 0660 /sys/devices/platform/fb/graphics/fb6/cursor
+    chmod 0660 /sys/devices/platform/fb/graphics/fb6/enable
+    chmod 0660 /sys/devices/platform/fb/graphics/fb7/enable
+    chmod 0660 /sys/devices/platform/fb/graphics/fb8/enable
+    chmod 0660 /sys/devices/platform/fb/graphics/fb9/enable
+    chmod 0660 /sys/devices/platform/fb/graphics/fb9/bits_per_pixel
+    chmod 0660 /sys/devices/platform/fb/graphics/fb9/win_property
+
 # cpu min freq must change to 126M when boot completed
 on property:sys.boot_completed=1
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 0
     write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq 0
     setprop persist.sys.first_booting false
+    # if data is encrypt, when start gps too early, gpsd crashed
+    start gpsd
 
 # for telephony function
 on property:ro.boot.baseband=N/A
@@ -195,3 +222,16 @@ service up_eth0 /system/bin/busybox ifconfig eth0 up
     class main
     oneshot
 
+service shutdownanim /system/bin/bootanimation shutdown
+    class core
+    user graphics
+    group graphics audio
+    disabled
+    oneshot
+
+service startup_rington /system/bin/tinyplay /system/media/audio/startup.wav 3
+    class core
+    user system
+    group graphics audio system
+    disabled
+    oneshot
